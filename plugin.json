@@ -1,0 +1,31 @@
+{
+  "name": "paybridge-payments-substrate",
+  "version": "1.0.0",
+  "description": "Project substrate for the PayBridge payments operations capstone.",
+  "business_case": "BC-AINE-009",
+  "commands": [
+    ".claude/commands/validate-domain.md",
+    ".claude/commands/run-ac-suite.md",
+    ".claude/commands/generate-settlement.md"
+  ],
+  "skills": [
+    ".claude/skills/routing-rule-evaluator/SKILL.md",
+    ".claude/skills/idempotency-guard/SKILL.md",
+    ".claude/skills/reconciliation-matcher/SKILL.md",
+    ".claude/skills/settlement-file-builder/SKILL.md",
+    ".claude/skills/state-machine-validator/SKILL.md"
+  ],
+  "agents": [
+    ".claude/agents/payments-implementer.md",
+    ".claude/agents/domain-validator.md",
+    ".claude/agents/reconciliation-settlement-reviewer.md",
+    ".claude/agents/security-reviewer.md"
+  ],
+  "hooks": [
+    ".claude/hooks/amount-precision-check.sh",
+    ".claude/hooks/payment-immutability-check.sh",
+    ".claude/hooks/masked-pii-check.sh"
+  ],
+  "mcp": ".mcp.json",
+  "harness_dependency": "claude-harness-engine"
+}

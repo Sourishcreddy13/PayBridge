@@ -1,0 +1,8 @@
+[importlinter]
+root_package = paybridge
+
+[contract:domain-is-isolated]
+name = Domain has no framework dependencies
+type = forbidden
+source_modules = paybridge.domain
+forbidden_modules = fastapi, sqlite3, pydantic_settings

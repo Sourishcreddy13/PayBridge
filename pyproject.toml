@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=70"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "paybridge"
+version = "1.0.0"
+description = "AI-native payments routing, reconciliation and settlement hub"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn[standard]>=0.32,<1",
+  "pydantic>=2.9,<3",
+  "pydantic-settings>=2.6,<3",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3,<9",
+  "pytest-cov>=6,<7",
+  "httpx>=0.27,<1",
+  "ruff>=0.8,<1",
+  "mypy>=1.14,<2",
+  "import-linter>=2.3,<3",
+]
+ai = [
+  "claude-agent-sdk==0.2.161",
+  "anyio>=4,<5",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+markers = [
+  "AC_01: Payment initiation",
+  "AC_02: Idempotency",
+  "AC_03: Routing",
+  "AC_04: Lifecycle state machine",
+  "AC_05: Rail retry",
+  "AC_06: Reconciliation",
+  "AC_07: Settlement",
+  "AC_08: Refunds",
+  "AC_09: Audit",
+  "AC_10: Ops dashboard",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true

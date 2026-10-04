@@ -1,0 +1,2 @@
+# Application Rules
+Services orchestrate domain policies, repositories, adapters, retries, and audit. Service methods return DTOs or domain values and translate technical errors to stable application exceptions.

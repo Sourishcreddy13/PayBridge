@@ -1,0 +1,2 @@
+# Infrastructure Rules
+Infrastructure owns SQLite access, transaction boundaries, rail adapter simulation, configuration, and structured logging. SQL is parameterized. Immutable tables have no update/delete path.

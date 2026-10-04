@@ -1,0 +1,2 @@
+# Frontend Rules
+Use React functional components with TypeScript. Keep API calls in `src/api.ts`, domain labels in typed models, and UI state local. Use responsive CSS and accessible controls. Do not duplicate backend business rules.

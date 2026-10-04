@@ -1,0 +1,55 @@
+stages:
+  - verify
+  - ai-review
+
+image: python:3.13-slim
+
+before_script:
+  - python -m pip install --upgrade pip
+  - pip install -e '.[dev]'
+
+unit-and-architecture:
+  stage: verify
+  script:
+    - ruff check src tests scripts
+    - pytest -q --cov=src/paybridge --cov-report=term-missing --cov-report=xml:coverage.xml
+    - test -f coverage.xml
+    - bash .claude/hooks/amount-precision-check.sh
+    - bash .claude/hooks/payment-immutability-check.sh
+    - bash .claude/hooks/masked-pii-check.sh
+  artifacts:
+    when: always
+    paths:
+      - coverage.xml
+
+claude-review:
+  stage: ai-review
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  script:
+    - pip install -e '.[ai]'
+    - python scripts/claude_agent_review.py --repo .
+  variables:
+    CLAUDE_CODE_USE_BEDROCK: "0"
+  allow_failure: false
+
+main-protection-contract:
+  stage: verify
+  script:
+    - test "$CI_COMMIT_BRANCH" != "main" || test "$CI_MERGE_REQUEST_IID" != ""
+
+frontend-build-and-ui:
+  stage: verify
+  image: node:22-slim
+  script:
+    - cd frontend
+    - npm install --no-audit --no-fund
+    - npm run build
+    - npx playwright install --with-deps chromium
+    - npm run e2e
+  artifacts:
+    when: always
+    paths:
+      - frontend/test-results/
+      - frontend/playwright-report/
+      - frontend/tests/snapshots/

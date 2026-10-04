@@ -1,0 +1,2 @@
+# Source Rules
+Keep application code typed, deterministic, and dependency-directional. Import public symbols from the layer package where practical. Business rules belong in `src/paybridge/domain`; orchestration belongs in `src/paybridge/application`; I/O belongs in `src/paybridge/infrastructure`; transport concerns belong in `src/paybridge/controllers`.
