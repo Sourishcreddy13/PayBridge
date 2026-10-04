@@ -5,3 +5,5 @@ Deliver AC-08 through AC-10 and close audit/security requirements.
 
 ## Exit criteria
 Refund reverse entries are linked; original payment derives `REFUNDED`; ops queues and metrics are available through RBAC-protected controllers.
+
+Operations workflow evidence: AC-06 through AC-10 are covered by reconciliation, settlement, refund, audit, and dashboard services.
