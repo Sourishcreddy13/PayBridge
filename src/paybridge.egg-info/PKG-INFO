@@ -1,0 +1,19 @@
+Metadata-Version: 2.4
+Name: paybridge
+Version: 1.0.0
+Summary: AI-native payments routing, reconciliation and settlement hub
+Requires-Python: >=3.12
+Requires-Dist: fastapi<1,>=0.115
+Requires-Dist: uvicorn[standard]<1,>=0.32
+Requires-Dist: pydantic<3,>=2.9
+Requires-Dist: pydantic-settings<3,>=2.6
+Provides-Extra: dev
+Requires-Dist: pytest<9,>=8.3; extra == "dev"
+Requires-Dist: pytest-cov<7,>=6; extra == "dev"
+Requires-Dist: httpx<1,>=0.27; extra == "dev"
+Requires-Dist: ruff<1,>=0.8; extra == "dev"
+Requires-Dist: mypy<2,>=1.14; extra == "dev"
+Requires-Dist: import-linter<3,>=2.3; extra == "dev"
+Provides-Extra: ai
+Requires-Dist: claude-agent-sdk==0.2.161; extra == "ai"
+Requires-Dist: anyio<5,>=4; extra == "ai"
