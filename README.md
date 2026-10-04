@@ -33,11 +33,11 @@ Payment state is event-derived. The original payment row is never updated. A tra
 Requirements: Python 3.12+.
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -e '.[dev]'
-python scripts/seed_data.py
-./scripts/run.sh
+uv python install 3.12
+uv sync --extra dev
+cp .env.example .env
+uv run python scripts/seed_data.py --settle-today
+uv run uvicorn paybridge.main:app --host 127.0.0.1 --port 8000
 ```
 
 The API is available at `http://127.0.0.1:8000`.
@@ -64,7 +64,9 @@ See `docs/requirements-matrix.md` for AC/NFR-to-code/test mapping.
 ## Run tests
 
 ```bash
-pytest -q --cov=src/paybridge --cov-report=term-missing --cov-report=xml:coverage.xml
+uv run pytest -q --cov=src/paybridge --cov-report=term-missing --cov-report=xml:coverage.xml
+uv run mypy src
+uv run ruff check src tests scripts
 ```
 
 Architecture checks are in `tests/architecture/`. AC-tagged tests use `pytest -m AC_01` through `AC_10`.

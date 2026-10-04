@@ -4,11 +4,12 @@ from paybridge.domain.enums import ReconciliationStatus
 from paybridge.domain.models import SettlementEntry
 from paybridge.domain.reconciliation_rules import classify_entry
 
-from .ports import PaymentRepository, SettlementRepository, AuditRepository
+from .audit import AuditService
+from .ports import PaymentRepository, SettlementRepository
 
 
 class ReconciliationService:
-    def __init__(self, payments: PaymentRepository, settlements: SettlementRepository, audit: AuditRepository) -> None:
+    def __init__(self, payments: PaymentRepository, settlements: SettlementRepository, audit: AuditService) -> None:
         self._payments = payments
         self._settlements = settlements
         self._audit = audit

@@ -1,17 +1,16 @@
 from uuid import UUID, uuid4
 
 from paybridge.domain.enums import PaymentState, RailOutcome
-from paybridge.domain.exceptions import PaymentNotFound, ValidationError
 from paybridge.domain.models import Beneficiary, Payment, PaymentTransition, utc_now
+from paybridge.domain.pii_policy import mask_account_number, mask_ifsc
 from paybridge.domain.state_machine import validate_transition
 
 from .audit import AuditService
 from .dto import CreatePaymentInput, PaymentListItem, PaymentView
 from .ports import PaymentRepository, RoutingRepository
+from .rail_service import RailService
 from .retry import RetryPolicy
 from .routing_service import RoutingService
-from .rail_service import RailService
-from paybridge.domain.pii_policy import mask_account_number, mask_ifsc
 
 
 class PaymentService:
@@ -46,20 +45,15 @@ class PaymentService:
         created, original_id = self._repository.reserve_and_append_payment(payment)
         if not created:
             return self.get_payment(original_id)
-        try:
-            self._audit.record_event(
-                "PAYMENT_CREATED", actor, correlation_id, payment_id, {"initial_state": PaymentState.PENDING.value}
-            )
-            decision = self._routing_service.route(payment, actor, correlation_id, urgent=command.urgent)
-            self._routing_repository.append_decision(decision)
-            self._audit.record_routing(decision, correlation_id)
-            return self.get_payment(payment_id)
-        except Exception:
-            # The immutable payment remains recorded. A failed post-creation workflow is surfaced for operational handling.
-            raise
+        self._audit.record_event(
+            "PAYMENT_CREATED", actor, correlation_id, payment_id, {"initial_state": PaymentState.PENDING.value}
+        )
+        decision = self._routing_service.route(payment, actor, correlation_id, urgent=command.urgent)
+        self._routing_repository.append_decision(decision)
+        self._audit.record_routing(decision, correlation_id)
+        return self.get_payment(payment_id)
 
     def process_payment(self, payment_id: UUID, actor: str, correlation_id: str) -> PaymentView:
-        payment = self._repository.get_payment(payment_id)
         current = self._repository.get_current_state(payment_id)
         validate_transition(current, PaymentState.PROCESSING)
         processing = PaymentTransition(payment_id, current, PaymentState.PROCESSING, utc_now(), actor)

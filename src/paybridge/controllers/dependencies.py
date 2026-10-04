@@ -1,4 +1,6 @@
+from collections.abc import Callable
 from typing import Annotated
+
 from fastapi import Depends, Header
 
 from paybridge.domain.enums import Role
@@ -24,9 +26,10 @@ def current_auth(authorization: Annotated[str | None, Header()] = None) -> AuthC
     return AuthContext(actor=f"demo-{role_value.lower()}", role=Role(role_value))
 
 
-def require_roles(*allowed: Role):
+def require_roles(*allowed: Role) -> Callable[[AuthContext], AuthContext]:
     def dependency(auth: Annotated[AuthContext, Depends(current_auth)]) -> AuthContext:
         if auth.role not in allowed:
             raise AuthorizationError("Insufficient role")
         return auth
+
     return dependency
