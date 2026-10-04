@@ -1,36 +1,36 @@
-import { useEffect, useState } from 'react';
-import { api } from './api';
-import type { OpsSummary, PaymentListItem } from './types';
-import { PaymentTable } from './components/PaymentTable';
-import { MetricCard } from './components/MetricCard';
-import { QueueCard } from './components/QueueCard';
+import { useCallback, useEffect, useState } from 'react';
+import { api, hasToken, setToken } from './api';
+import { CustomerPortal } from './components/CustomerPortal';
+import { OpsDashboard } from './components/OpsDashboard';
+import { SignIn } from './components/SignIn';
+import type { Identity } from './types';
 
 export function App() {
-  const [payments, setPayments] = useState<PaymentListItem[]>([]);
-  const [summary, setSummary] = useState<OpsSummary | null>(null);
+  const [identity, setIdentity] = useState<Identity | null>(null);
   const [health, setHealth] = useState('checking');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(hasToken());
 
-  useEffect(() => {
-    Promise.all([api.payments(), api.summary(), api.health()]).then(([p, s, h]) => {
-      setPayments(p); setSummary(s); setHealth(h.status);
-    }).catch((err: Error) => setError(err.message));
+  const signIn = useCallback(async (token: string) => {
+    setToken(token); setError(''); setLoading(true);
+    try { setIdentity(await api.me()); } catch { setToken(''); setError('That token was not accepted.'); } finally { setLoading(false); }
   }, []);
 
+  useEffect(() => {
+    api.health().then((h) => setHealth(h.status)).catch(() => setHealth('DOWN'));
+    if (hasToken()) api.me().then(setIdentity).catch(() => setToken('')).finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <main className="shell"><p className="empty">Loading…</p></main>;
+  if (!identity) return <SignIn onSubmit={(t) => void signIn(t)} error={error} />;
+
+  const staff = identity.role !== 'CUSTOMER';
   return <main className="shell">
-    <header className="header"><div><p className="eyebrow">PAYBRIDGE</p><h1>Payments operations hub</h1></div><span className="health">API {health}</span></header>
-    {error && <div className="error" role="alert">{error}</div>}
-    <section className="metrics">
-      <MetricCard title="Today" value={String(payments.length)} detail="payments" />
-      <MetricCard title="Settled" value={String(summary?.volumes_by_status.SETTLED ?? 0)} detail="payments" />
-      <MetricCard title="Unmatched" value={String(summary?.unmatched_queue.length ?? 0)} detail="settlement items" />
-      <MetricCard title="Refunds" value={String(summary?.refund_queue.length ?? 0)} detail="reverse entries" />
-    </section>
-    <section className="queue-grid">
-      <QueueCard title="Unmatched queue" count={summary?.unmatched_queue.length ?? 0} description="Settlement items requiring ops review." />
-      <QueueCard title="Refund queue" count={summary?.refund_queue.length ?? 0} description="Reverse entries recorded today or earlier." />
-    </section>
-    <section className="panel"><div className="panel-head"><h2>Payment history</h2><span>synthetic data</span></div><div className="table-wrap"><PaymentTable payments={payments} /></div></section>
+    <header className="header">
+      <div><p className="eyebrow">PAYBRIDGE</p><h1>{staff ? 'Payments operations hub' : 'My payments'}</h1></div>
+      <div className="who"><span className="health">API {health}</span><span className="health">{identity.subject} · {identity.role}</span>
+        <button onClick={() => { setToken(''); setIdentity(null); }}>Sign out</button></div>
+    </header>
+    {staff ? <OpsDashboard /> : <CustomerPortal />}
   </main>;
 }
-
