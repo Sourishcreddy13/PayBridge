@@ -16,6 +16,3 @@ def validate_beneficiary(beneficiary: Beneficiary) -> None:
     if beneficiary.name.strip().lower() in {"anonymous", "unknown"}:
         raise ValidationError("Beneficiary name is not acceptable")
 
-
-def beneficiary_key(beneficiary: Beneficiary) -> str:
-    return f"{beneficiary.ifsc.upper()}:{beneficiary.account_number[-4:]}:{beneficiary.beneficiary_type.value}"

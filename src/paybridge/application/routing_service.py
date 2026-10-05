@@ -1,7 +1,6 @@
-from uuid import UUID
 
 from paybridge.domain.models import Payment, RoutingDecision, utc_now
-from paybridge.domain.routing_rules import select_rail
+from paybridge.domain.rail_policy import select_rail
 
 
 class RoutingService:

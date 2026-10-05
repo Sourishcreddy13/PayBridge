@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
+import sys
 from decimal import Decimal
 from pathlib import Path
-import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from paybridge.application.dto import BeneficiaryInput, CreatePaymentInput
 from paybridge.domain.enums import PaymentState
-from paybridge.main import payment_service
+from paybridge.main import app
 
 
 def seed(settle_today: bool = False) -> None:
+    payment_service = app.state.payment_service
     commands = [
         CreatePaymentInput(
             beneficiary=BeneficiaryInput(

@@ -1,22 +1,38 @@
-from pathlib import Path
+import os
 import tempfile
+from collections.abc import Iterator
+from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 
-from paybridge.infrastructure.db import Database
-from paybridge.main import app
+# The module-level ``app`` is built at import time; keep its state out of the working directory.
+_BOOT = Path(tempfile.mkdtemp(prefix="paybridge-tests-"))
+os.environ.setdefault("PAYBRIDGE_DATABASE_PATH", str(_BOOT / "boot.db"))
+os.environ.setdefault("PAYBRIDGE_SETTLEMENT_DIR", str(_BOOT / "settlements"))
+
+from paybridge.infrastructure.settings import Settings
+from paybridge.main import create_app
+
+CUSTOMER = {"Authorization": "Bearer customer-demo-token"}
+OPS = {"Authorization": "Bearer ops-demo-token"}
 
 
 @pytest.fixture()
-def client(tmp_path: Path, monkeypatch):
-    # The application uses module-level services; tests patch the database path before creating schema.
-    from paybridge import main
-    db = Database(tmp_path / 'test.db')
-    monkeypatch.setattr(main, 'database', db)
-    monkeypatch.setattr(main, 'payment_repo', main.SQLitePaymentRepository(db))
-    monkeypatch.setattr(main, 'routing_repo', main.SQLiteRoutingRepository(db))
-    monkeypatch.setattr(main, 'audit_repo', main.SQLiteAuditRepository(db))
-    monkeypatch.setattr(main, 'settlement_repo', main.SQLiteSettlementRepository(db))
-    monkeypatch.setattr(main, 'refund_repo', main.SQLiteRefundRepository(db))
-    with TestClient(app) as test_client:
+def settings(tmp_path: Path) -> Settings:
+    return Settings(
+        database_path=tmp_path / "test.db",
+        settlement_dir=tmp_path / "settlements",
+        refund_auto_approve=False,
+        auth_tokens=(
+            '{"customer-alice-token": {"subject": "alice", "role": "CUSTOMER"},'
+            ' "customer-bob-token": {"subject": "bob", "role": "CUSTOMER"},'
+            ' "ops-olivia-token": {"subject": "olivia", "role": "OPS"}}'
+        ),
+    )
+
+
+@pytest.fixture()
+def client(settings: Settings) -> Iterator[TestClient]:
+    with TestClient(create_app(settings)) as test_client:
         yield test_client

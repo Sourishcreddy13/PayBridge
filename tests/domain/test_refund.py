@@ -1,5 +1,7 @@
 from decimal import Decimal
+
 import pytest
+
 from paybridge.domain.enums import PaymentState
 from paybridge.domain.exceptions import RefundNotAllowed, ValidationError
 from paybridge.domain.refund_policy import validate_refund

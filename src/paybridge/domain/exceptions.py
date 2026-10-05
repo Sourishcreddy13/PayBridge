@@ -37,3 +37,7 @@ class AuthenticationError(DomainError):
 
 class AuthorizationError(DomainError):
     """Raised when a role is insufficient for an operation."""
+
+
+class SettlementImportAlreadyExists(DomainError):
+    """Raised when an identical settlement file has already been imported."""

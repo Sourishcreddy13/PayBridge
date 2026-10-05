@@ -13,8 +13,3 @@ def normalize_narration(value: str) -> str:
         raise ValidationError("Narration contains unsupported control characters")
     return normalized[:250]
 
-
-def narration_is_prompt_injection_like(value: str) -> bool:
-    lowered = value.lower()
-    indicators = ("ignore previous instructions", "system prompt", "developer message", "execute shell")
-    return any(indicator in lowered for indicator in indicators)

@@ -1,10 +1,16 @@
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from paybridge.domain.enums import BeneficiaryType, PaymentState, Rail, ReconciliationStatus, RefundStatus
+from paybridge.domain.enums import (
+    BeneficiaryType,
+    PaymentState,
+    Rail,
+    ReconciliationStatus,
+    RefundStatus,
+)
 from paybridge.domain.idempotency_policy import normalize_idempotency_key
 from paybridge.domain.money import parse_amount
 
@@ -60,6 +66,8 @@ class PaymentListItem(BaseModel):
 
 
 class RefundInput(BaseModel):
+    """Only full refunds are supported; ``amount`` may be omitted or equal the payment amount."""
+
     amount: Decimal | None = None
 
     @field_validator("amount")
@@ -85,8 +93,25 @@ class SettlementLineView(BaseModel):
     status: ReconciliationStatus
 
 
+class QueuedPaymentView(BaseModel):
+    payment_id: UUID
+    rail: Rail | None
+    amount: Decimal
+    created_at: datetime
+
+
 class OpsSummaryView(BaseModel):
+    business_date: date
+    payments_today: int
     volumes_by_rail: dict[str, int]
     volumes_by_status: dict[str, int]
     unmatched_queue: list[SettlementLineView]
     refund_queue: list[RefundView]
+    pending_queue: list[QueuedPaymentView]
+    retry_queue: list[QueuedPaymentView]
+
+
+class SettlementImportView(BaseModel):
+    business_date: date
+    entry_count: int
+    checksum: str

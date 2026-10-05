@@ -7,11 +7,14 @@ from paybridge.application.rail_service import RailService
 from paybridge.application.retry import RetryPolicy
 from paybridge.application.routing_service import RoutingService
 from paybridge.domain.enums import BeneficiaryType, PaymentState, Rail, RailOutcome
-from paybridge.domain.models import RailResponse
 from paybridge.infrastructure.db import Database
 from paybridge.infrastructure.rail_adapters import RailScript, StubRailAdapter
 from paybridge.infrastructure.rail_attempt_repository import SQLiteRailAttemptRepository
-from paybridge.infrastructure.repositories import SQLiteAuditRepository, SQLitePaymentRepository, SQLiteRoutingRepository
+from paybridge.infrastructure.repositories import (
+    SQLiteAuditRepository,
+    SQLitePaymentRepository,
+    SQLiteRoutingRepository,
+)
 
 
 class LocalRailService(RailService):
@@ -28,7 +31,7 @@ def build(tmp_path, outcome_scripts=None):
     scripts=outcome_scripts or {rail: (RailOutcome.SUCCESS,) for rail in Rail}
     adapters={rail.value: StubRailAdapter(rail,RailScript(tuple(scripts[rail])),attempts) for rail in Rail}
     rail_service=LocalRailService(payments,adapters,routes)
-    return PaymentService(payments,routes,RoutingService(),rail_service,audit,RetryPolicy(3,Decimal('0')))
+    return PaymentService(payments,routes,RoutingService(),rail_service,audit,RetryPolicy(3,Decimal(0)))
 
 
 def command(key='flow-idem-01',amount='100.00'):
@@ -56,8 +59,8 @@ def test_AC_05_permanent_script_fails(tmp_path):
 
 
 def test_AC_09_audit_is_created_for_route_and_states(tmp_path):
-    service=build(tmp_path); created=service.create_payment(command(), 'customer','corr'); service.process_payment(created.payment_id,'customer','corr');
-    db=service._repository._db.connection();
+    service=build(tmp_path); created=service.create_payment(command(), 'customer','corr'); service.process_payment(created.payment_id,'customer','corr')
+    db=service._repository._db.connection()
     try:
         rows=db.execute('SELECT event_type FROM audit_events ORDER BY id').fetchall(); assert any(r['event_type']=='ROUTING_DECISION' for r in rows); assert any(r['event_type']=='PAYMENT_TRANSITION' for r in rows)
     finally: db.close()

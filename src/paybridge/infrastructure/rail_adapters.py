@@ -1,8 +1,9 @@
 from dataclasses import dataclass
-from uuid import UUID
 
 from paybridge.domain.enums import Rail, RailOutcome
+from paybridge.domain.exceptions import ValidationError
 from paybridge.domain.models import Payment, RailResponse
+
 from .ports_runtime import RailOutcomeScriptStore
 
 
@@ -10,6 +11,12 @@ from .ports_runtime import RailOutcomeScriptStore
 class RailScript:
     outcomes: tuple[RailOutcome, ...]
     reason_code: str = "SIMULATED"
+
+    def __post_init__(self) -> None:
+        if not self.outcomes:
+            raise ValidationError("A rail script needs at least one outcome")
+        if not all(isinstance(outcome, RailOutcome) for outcome in self.outcomes):
+            raise ValidationError("Every rail script outcome must be a RailOutcome")
 
 
 class StubRailAdapter:

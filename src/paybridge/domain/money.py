@@ -1,4 +1,4 @@
-from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 
 from .exceptions import ValidationError
 
@@ -11,7 +11,7 @@ def parse_amount(value: str | Decimal | int) -> Decimal:
         amount = Decimal(str(value)).quantize(CURRENCY_SCALE, rounding=ROUND_HALF_UP)
     except (InvalidOperation, ValueError) as exc:
         raise ValidationError("Invalid monetary value") from exc
-    if amount <= Decimal("0"):
+    if amount <= Decimal(0):
         raise ValidationError("Amount must be greater than zero")
     if not amount.is_finite():
         raise ValidationError("Amount must be finite")

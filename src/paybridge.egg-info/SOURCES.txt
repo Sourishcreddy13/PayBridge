@@ -11,16 +11,13 @@ src/paybridge/application/__init__.py
 src/paybridge/application/audit.py
 src/paybridge/application/dashboard_service.py
 src/paybridge/application/dto.py
-src/paybridge/application/health_service.py
-src/paybridge/application/operational_queue_service.py
-src/paybridge/application/payment_command_validator.py
+src/paybridge/application/events.py
 src/paybridge/application/payment_service.py
 src/paybridge/application/ports.py
 src/paybridge/application/rail_service.py
 src/paybridge/application/reconciliation_service.py
 src/paybridge/application/refund_service.py
 src/paybridge/application/retry.py
-src/paybridge/application/retry_pipeline_service.py
 src/paybridge/application/routing_service.py
 src/paybridge/application/settlement_import_service.py
 src/paybridge/application/settlement_service.py
@@ -43,9 +40,7 @@ src/paybridge/domain/payment_limits.py
 src/paybridge/domain/pii_policy.py
 src/paybridge/domain/rail_policy.py
 src/paybridge/domain/reconciliation_rules.py
-src/paybridge/domain/refund_idempotency.py
 src/paybridge/domain/refund_policy.py
-src/paybridge/domain/routing_rules.py
 src/paybridge/domain/settlement_policy.py
 src/paybridge/domain/state_machine.py
 src/paybridge/infrastructure/__init__.py
@@ -58,4 +53,5 @@ src/paybridge/infrastructure/rail_attempt_repository.py
 src/paybridge/infrastructure/read_models.py
 src/paybridge/infrastructure/repositories.py
 src/paybridge/infrastructure/settings.py
-src/paybridge/infrastructure/settlement_file_io.py
+src/paybridge/infrastructure/migrations/001_initial.sql
+src/paybridge/infrastructure/migrations/002_integrity.sql

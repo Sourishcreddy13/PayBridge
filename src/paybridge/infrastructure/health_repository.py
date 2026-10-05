@@ -1,5 +1,4 @@
 import sqlite3
-from pathlib import Path
 
 from .db import Database
 
@@ -16,8 +15,3 @@ class SQLiteHealthRepository:
             raise RuntimeError("Database health check failed") from exc
         finally:
             connection.close()
-
-    def ensure_path(self) -> Path:
-        path = self._database.path
-        path.parent.mkdir(parents=True, exist_ok=True)
-        return path

@@ -1,7 +1,7 @@
-from decimal import Decimal
 import pytest
-from paybridge.domain.money import parse_amount, format_amount
+
 from paybridge.domain.exceptions import ValidationError
+from paybridge.domain.money import format_amount, parse_amount
 
 
 def test_decimal_rounding():

@@ -1,6 +1,5 @@
-from pathlib import Path
-import sqlite3
 from paybridge.infrastructure.db import Database
+
 
 def test_NFR_02_transition_trigger_exists(tmp_path):
     c=Database(tmp_path/'db.sqlite').connection()

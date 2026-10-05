@@ -1,37 +1,34 @@
-from collections import Counter
-from datetime import date
+from datetime import date, datetime
+from decimal import Decimal
+from typing import Protocol
+from uuid import UUID
 
-from paybridge.domain.enums import ReconciliationStatus
+from paybridge.domain.enums import PaymentState, Rail, ReconciliationStatus
 
-from .dto import OpsSummaryView, RefundView, SettlementLineView
-from .ports import PaymentRepository, RefundRepository, RoutingRepository, SettlementRepository
+from .dto import OpsSummaryView, QueuedPaymentView, RefundView, SettlementLineView
+from .ports import RefundRepository, SettlementRepository
+
+
+class OpsReadModel(Protocol):
+    def payments_on(self, business_date: date) -> int: ...
+    def volume_by_status(self, business_date: date) -> dict[str, int]: ...
+    def volume_by_rail(self, business_date: date) -> dict[str, int]: ...
+    def payments_in_state(
+        self, business_date: date, state: PaymentState
+    ) -> list[tuple[UUID, Rail | None, str, str]]: ...
 
 
 class DashboardService:
+    """Ops summary built from one aggregate read model instead of per-payment lookups."""
+
     def __init__(
-        self,
-        payments: PaymentRepository,
-        routes: RoutingRepository,
-        settlements: SettlementRepository,
-        refunds: RefundRepository,
-        read_model: object | None = None,
+        self, settlements: SettlementRepository, refunds: RefundRepository, read_model: OpsReadModel
     ) -> None:
-        self._payments = payments
-        self._routes = routes
         self._settlements = settlements
         self._refunds = refunds
         self._read_model = read_model
 
     def summary(self, business_date: date) -> OpsSummaryView:
-        payments = [p for p in self._payments.list_payments() if p.created_at.date() == business_date]
-        by_rail: Counter[str] = Counter()
-        by_status: Counter[str] = Counter()
-        for payment in payments:
-            state = self._payments.get_current_state(payment.payment_id)
-            by_status[state.value] += 1
-            route = self._routes.get_route(payment.payment_id)
-            if route:
-                by_rail[route.value] += 1
         unmatched = [
             SettlementLineView(
                 external_reference=e.external_reference,
@@ -54,9 +51,21 @@ class DashboardService:
             )
             for r in self._refunds.list_refunds()
         ]
+        def queue(state: PaymentState) -> list[QueuedPaymentView]:
+            return [
+                QueuedPaymentView(
+                    payment_id=pid, rail=rail, amount=Decimal(amount), created_at=datetime.fromisoformat(created)
+                )
+                for pid, rail, amount, created in self._read_model.payments_in_state(business_date, state)
+            ]
+
         return OpsSummaryView(
-            volumes_by_rail=dict(by_rail),
-            volumes_by_status=dict(by_status),
+            business_date=business_date,
+            payments_today=self._read_model.payments_on(business_date),
+            volumes_by_rail=self._read_model.volume_by_rail(business_date),
+            volumes_by_status=self._read_model.volume_by_status(business_date),
             unmatched_queue=unmatched,
             refund_queue=refund_views,
+            pending_queue=queue(PaymentState.PENDING),
+            retry_queue=queue(PaymentState.PROCESSING),
         )

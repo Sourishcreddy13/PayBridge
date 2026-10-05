@@ -1,7 +1,7 @@
 from uuid import UUID
 
-from paybridge.domain.models import PaymentTransition
 from paybridge.application.ports import PaymentRepository
+from paybridge.domain.models import PaymentTransition
 
 
 class TimelineService:

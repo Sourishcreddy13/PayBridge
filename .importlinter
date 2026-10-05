@@ -1,8 +1,26 @@
 [importlinter]
 root_package = paybridge
+include_external_packages = True
 
-[contract:domain-is-isolated]
-name = Domain has no framework dependencies
+[importlinter:contract:domain-is-isolated]
+name = Domain has no framework or I/O dependencies
 type = forbidden
 source_modules = paybridge.domain
-forbidden_modules = fastapi, sqlite3, pydantic_settings
+forbidden_modules =
+    fastapi
+    starlette
+    pydantic
+    pydantic_settings
+    sqlite3
+    paybridge.application
+    paybridge.infrastructure
+    paybridge.controllers
+
+[importlinter:contract:layered-architecture]
+name = Dependencies point inward only
+type = layers
+layers =
+    paybridge.main
+    paybridge.controllers | paybridge.infrastructure
+    paybridge.application
+    paybridge.domain

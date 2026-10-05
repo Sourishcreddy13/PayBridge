@@ -1,16 +1,16 @@
 from dataclasses import dataclass
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from uuid import UUID
 
+from .audit_policy import validate_actor
+from .beneficiary_policy import validate_beneficiary
+from .currency_policy import validate_amount_band, validate_currency
 from .enums import BeneficiaryType, PaymentState, Rail, ReconciliationStatus, RefundStatus
 from .exceptions import ValidationError
 from .money import parse_amount
-from .currency_policy import validate_currency, validate_amount_band
-from .beneficiary_policy import validate_beneficiary
-from .payment_limits import validate_payment_limits
 from .narration_policy import normalize_narration
-from .audit_policy import validate_actor
+from .payment_limits import validate_payment_limits
 
 
 @dataclass(frozen=True, slots=True)
@@ -105,4 +105,4 @@ class Refund:
 
 
 def utc_now() -> datetime:
-    return datetime.now(tz=timezone.utc)
+    return datetime.now(tz=UTC)

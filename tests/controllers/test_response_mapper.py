@@ -1,5 +1,6 @@
 from paybridge.controllers.response_mapper import map_domain_error, safe_error_payload
-from paybridge.domain.exceptions import PaymentNotFound, DomainError
+from paybridge.domain.exceptions import DomainError, PaymentNotFound
+
 
 def test_not_found_maps_to_404(): assert map_domain_error(PaymentNotFound('x')).status_code==404
 def test_unknown_domain_error_is_sanitized():

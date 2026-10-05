@@ -1,8 +1,8 @@
-from collections import Counter
 from datetime import date
 from uuid import UUID
 
-from paybridge.domain.enums import PaymentState
+from paybridge.domain.enums import PaymentState, Rail
+
 from .db import Database
 
 
@@ -52,3 +52,34 @@ class SQLiteOpsReadModel:
             return int(row["n"]) if row else 0
         finally:
             conn.close()
+
+    def payments_on(self, business_date: date) -> int:
+        conn = self._db.connection()
+        try:
+            row = conn.execute(
+                "SELECT COUNT(*) AS n FROM payments WHERE date(created_at) = ?", (business_date.isoformat(),)
+            ).fetchone()
+            return int(row["n"])
+        finally:
+            conn.close()
+
+    def payments_in_state(
+        self, business_date: date, state: PaymentState
+    ) -> list[tuple[UUID, Rail | None, str, str]]:
+        """Payments created on ``business_date`` whose latest lifecycle state is ``state``."""
+        conn = self._db.connection()
+        try:
+            rows = conn.execute("""
+                SELECT p.payment_id, p.amount, p.created_at,
+                       (SELECT rail FROM routing_decisions r WHERE r.payment_id = p.payment_id ORDER BY id DESC LIMIT 1) AS rail
+                FROM payments p
+                WHERE date(p.created_at) = ?
+                  AND COALESCE((SELECT to_state FROM payment_transitions x WHERE x.payment_id = p.payment_id ORDER BY id DESC LIMIT 1), 'PENDING') = ?
+                ORDER BY p.created_at
+            """, (business_date.isoformat(), state.value)).fetchall()
+        finally:
+            conn.close()
+        return [
+            (UUID(r["payment_id"]), Rail(r["rail"]) if r["rail"] else None, r["amount"], r["created_at"])
+            for r in rows
+        ]

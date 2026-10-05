@@ -3,8 +3,15 @@ from typing import Any
 from fastapi import HTTPException
 
 from paybridge.domain.exceptions import (
-    AuthenticationError, AuthorizationError, DomainError, InvalidPaymentStateException,
-    PaymentNotFound, RefundNotAllowed, SettlementAlreadyExists, ValidationError,
+    AuthenticationError,
+    AuthorizationError,
+    DomainError,
+    InvalidPaymentStateException,
+    PaymentNotFound,
+    RefundNotAllowed,
+    SettlementAlreadyExists,
+    SettlementImportAlreadyExists,
+    ValidationError,
 )
 
 
@@ -16,6 +23,7 @@ def map_domain_error(error: Exception) -> HTTPException:
         (InvalidPaymentStateException, 409),
         (RefundNotAllowed, 409),
         (SettlementAlreadyExists, 409),
+        (SettlementImportAlreadyExists, 409),
         (ValidationError, 422),
     ]
     for error_type, status_code in mapping:
